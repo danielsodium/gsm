@@ -1,77 +1,49 @@
-#include "shell.h"
-#include <fstream>
 #include <filesystem>
+namespace fs = std::filesystem;
 
-Shell::Shell(std::string path) {
-    // Replace later with default config
-    config = path;
+#include "shell.h"
 
-    for (const auto & entry : std::filesystem::directory_iterator(config))
-        sessions.insert(std::make_pair(entry.path().stem().string(), nullptr));
+Shell::Shell(std::string _path) : path(_path), current_session("") {
+    sessions = std::unordered_map<std::string, std::shared_ptr<Session>>();
 
-    sessions = std::unordered_map<std::string, Session*>();
-    c_session = "";
-}
-
-std::string Shell::run(std::vector<std::string>& args) {
-    // we are in a session
-    if (args.size() > 1) {
-        if (!validSession(args[0]))
-            return "{'output':'Invalid Session'}";
-
-        return sessions[args[0]]->run();
+    // Check if config directory exists and create if not
+    fs::path config(path);
+    if (!fs::exists(config)) {
+        fs::create_directory(config);
     }
 
-    if (args[0].compare("ls") == 0) {
-
-        //  TODO: Write ls function
-
+    // Check if firefox directory exists
+    fs::path firefox(path);
+    firefox /= "firefox_sessions";
+    if (!fs::exists(firefox)) {
+        fs::create_directory(firefox);
     }
 
-    return "";
+    // Create all sessions unloaded
+    for (const auto & entry : fs::directory_iterator(config)) {
+        std::string s_name = entry.path().stem().string();
+        sessions.insert(
+            std::make_pair(s_name, 
+                           std::make_shared<Session>(s_name, path)
+            )
+        );
+    }
 }
 
 bool Shell::validSession(std::string& name) {
-    auto sess = sessions.find(name);
-    return sess != sessions.end();
+    for (auto it : sessions)
+        if (!it.first.compare(name)) return true;
+    return false;
 }
 
-bool Shell::loadSession(std::string& name) {
-    if (!validSession(name)) return false;
-    if (sessions[name] == nullptr) {
 
-        std::string path = config + "/" + name + ".json";
-        std::ifstream fs(path);
-        
-        // Create empty if doesn't exist
-        if (!fs.good()) {
-            sessions[name] = new Session();
-            return true;
-        }
-
-        std::string data;
-        std::string temp;
-        while (fs >> temp)
-            data += temp;
-
-        sessions[name] = new Session(data);
-
+json Shell::run(std::vector<std::string>& args) {
+    if (!validSession(args[0])) {
+         sessions.insert(
+            std::make_pair(args[0], 
+                           std::make_shared<Session>(args[0], path)
+            )
+        );
     }
-    return true;
+    return sessions[args[0]]->run(args);
 }
-
-bool Shell::saveSession(std::string& name) {
-    if (!validSession(name)) return false;
-    
-    std::ofstream fs;
-    std::string path = config + "/" + name + ".json";
-
-    // Clear data in file 
-    fs.open(path, std::ofstream::out | std::ofstream::trunc);
-    fs << sessions[name]->string();
-    fs.close();
-
-    return true;
-}
-
-
