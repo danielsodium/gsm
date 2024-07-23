@@ -1,6 +1,6 @@
 # GTK Session Manager
 
-GSM is a session manager to quickly change between projects using a command line interface. I plan to integrate a GUI using GTK to manage and edit sessions in the future. Currently, I use an AGS widget to quickly change between sessions which can be found in my [dotfiles](https://github.com/danielsodium/dotfiles). All sessions are stored under `~/.config/gsm`. Currently I have a lot of features hardcoded in for my own convenience which will change in the future.
+GSM is a session manager written in C++ to quickly change between projects using a command line interface. I plan to integrate a GUI using GTK to manage and edit sessions in the future. Currently, I use an AGS widget to quickly change between sessions which can be found in my [dotfiles](https://github.com/danielsodium/dotfiles). All sessions are stored under `~/.config/gsm`. Currently I have a lot of features hardcoded in for my own convenience which will change in the future.
 
 ## Installation
 
