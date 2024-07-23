@@ -1,2 +1,5 @@
 gsm
+gui
+compile_commands.json
 src/old
+.cache
